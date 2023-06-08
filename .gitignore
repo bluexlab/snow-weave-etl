@@ -1,0 +1,12 @@
+# i.e. https://jasonstitt.com/gitignore-whitelisting-patterns
+# Ignore everything in the root
+/*
+
+# Allow files and folders with a pattern starting with !
+!*.go
+!.gitignore
+!/pkg/
+!LICENSE
+!README.md
+!go.mod
+!go.sum

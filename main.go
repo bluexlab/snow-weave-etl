@@ -4,10 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"io"
-	"net/url"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strconv"
 	"syscall"
 
@@ -68,15 +66,18 @@ func runETL(ctx context.Context, etlSourceFolder string) {
 	if err != nil {
 		logrus.Fatalf("Fail to prepare database. %v", err)
 	}
+
 	defer func(c io.Closer) { _ = c.Close() }(db)
 
 	logrus.Info("Loading SQL files")
+
 	sqlFiles, err := snow.LoadSqls(etlSourceFolder)
 	if err != nil {
 		logrus.Fatalf("Fail to load SQL files from %q. %v", etlSourceFolder, err)
 	}
 
 	var sqlParallelDegree int = 5
+
 	if v := os.Getenv("SQL_PARALLEL_DEGREE"); len(v) > 0 {
 		if i, _ := strconv.ParseInt(v, 10, 64); i > 0 {
 			sqlParallelDegree = int(i)
@@ -89,6 +90,7 @@ func runETL(ctx context.Context, etlSourceFolder string) {
 	)
 
 	logrus.Info("runETL() start to execute SQL files")
+
 	if err := sqlExecutor.Execute(ctx, sqlFiles); err != nil {
 		logrus.Errorf("Fail to execute SQL files. %v", err)
 	}
@@ -97,20 +99,24 @@ func runETL(ctx context.Context, etlSourceFolder string) {
 }
 
 func prepareDb() (*sql.DB, error) {
-	conn := url.URL{
-		Scheme: "snowflake",
-		User:   url.UserPassword(os.Getenv("SNOWFLAKE_USERNAME"), os.Getenv("SNOWFLAKE_PASSWORD")),
-		Host:   os.Getenv("SNOWFLAKE_ACCOUNT"),
-		Path:   filepath.Join(os.Getenv("SNOWFLAKE_DATABASE"), os.Getenv("SNOWFLAKE_SCHEMA")),
+	config := &gosnowflake.Config{
+		Account:   os.Getenv("SNOWFLAKE_ACCOUNT"),
+		User:      os.Getenv("SNOWFLAKE_USERNAME"),
+		Password:  os.Getenv("SNOWFLAKE_PASSWORD"),
+		Database:  os.Getenv("SNOWFLAKE_DATABASE"),
+		Schema:    os.Getenv("SNOWFLAKE_SCHEMA"),
+		Warehouse: os.Getenv("SNOWFLAKE_WAREHOUSE"),
+		Role:      os.Getenv("SNOWFLAKE_ROLE"),
 	}
-	params := url.Values{}
-	params.Set("warehouse", os.Getenv("SNOWFLAKE_WAREHOUSE"))
-	params.Set("role", os.Getenv("SNOWFLAKE_ROLE"))
-	conn.RawQuery = params.Encode()
+	dsn, err := gosnowflake.DSN(config)
 
-	logrus.Debug("Connecting to Snowflake ...")
+	if err != nil {
+		return nil, err
+	}
 
-	db, err := sql.Open("snowflake", conn.String())
+	logrus.Debug("Opening Connection to Snowflake ...")
+
+	db, err := sql.Open("snowflake", dsn)
 	if err != nil {
 		return nil, err
 	}

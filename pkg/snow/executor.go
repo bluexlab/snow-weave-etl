@@ -47,6 +47,7 @@ func (s *SnowflakeSqlExecutor) Execute(ctx context.Context, snowSqls []Snowflake
 	for _, snowSql := range snowSqls {
 		snowSqlCh <- snowSql
 	}
+
 	close(snowSqlCh)
 
 	for i := 0; i < s.parallelDegree; i++ {
@@ -59,10 +60,12 @@ func (s *SnowflakeSqlExecutor) Execute(ctx context.Context, snowSqls []Snowflake
 				}
 
 				logrus.Infof("SnowflakeSqlExecutor.Execute() executing sql %q", snowSql.FileName)
+
 				if err := s.executeSql(ctx, snowSql); err != nil {
 					return fmt.Errorf("fail to execute sql %q. %w", snowSql.FileName, err)
 				}
 			}
+
 			return nil
 		})
 	}
@@ -77,6 +80,7 @@ func (s *SnowflakeSqlExecutor) executeSql(ctx context.Context, snowSql Snowflake
 	if err != nil {
 		return err
 	}
+
 	defer func(tx *sql.Tx) { _ = tx.Rollback() }(tx)
 
 	_, execErr := tx.ExecContext(ctx, snowSql.Sql)

@@ -5,8 +5,10 @@
 # Allow files and folders with a pattern starting with !
 !*.go
 !.gitignore
+!.gitlab-ci.yml
 !/pkg/
 !LICENSE
+!Makefile
 !README.md
 !go.mod
 !go.sum

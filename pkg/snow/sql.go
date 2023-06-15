@@ -16,16 +16,19 @@ type SnowflakeSql struct {
 
 func LoadSqls(folder string) ([]SnowflakeSql, error) {
 	dirFS := os.DirFS(folder)
+
 	entries, err := fs.ReadDir(dirFS, ".")
 	if err != nil {
 		return nil, err
 	}
 
 	snowSqls := make([]SnowflakeSql, 0, len(entries))
+
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
 		}
+
 		fileName := entry.Name()
 		if !strings.EqualFold(filepath.Ext(fileName), ".sql") {
 			logrus.Debugf("skip non-sql file: %s", fileName)
@@ -42,5 +45,6 @@ func LoadSqls(folder string) ([]SnowflakeSql, error) {
 			FileName: fileName,
 		})
 	}
+
 	return snowSqls, nil
 }

@@ -1,0 +1,47 @@
+---
+run:
+  tests: false
+  timeout: 5m
+  skip-dirs:
+    - (^|/)pkg/proto($|/)
+    - (^|/)test/mock($|/)
+    - (^|/)vendor($|/)
+    - (^|/)testdata($|/)
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+  exhaustive:
+    default-signifies-exhaustive: true
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/hetznercloud)
+  misspell:
+    locale: "US"
+
+linters:
+  disable:
+    - dupl
+    - exhaustruct
+    - gomnd
+    - nlreturn
+    - tagliatelle
+    - varnamelen
+    - wrapcheck
+  presets:
+    - bugs
+    - complexity
+    - error
+    - performance
+    - sql
+    - unused
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - errcheck
+

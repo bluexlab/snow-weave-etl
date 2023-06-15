@@ -23,7 +23,9 @@ func (log *SnowLogger) SetLogLevel(level string) error {
 	if err != nil {
 		return err
 	}
+
 	log.inner.SetLevel(actualLevel)
+
 	return nil
 }
 
@@ -39,7 +41,6 @@ func (log *SnowLogger) WithContext(ctx context.Context) *logrus.Entry {
 // If you want multiple fields, use `WithFields`.
 func (log *SnowLogger) WithField(key string, value interface{}) *logrus.Entry {
 	return log.inner.WithField(key, value)
-
 }
 
 // Adds a struct of fields to the log entry. All it does is call `WithField` for
@@ -236,7 +237,6 @@ func (log *SnowLogger) GetLevel() logrus.Level {
 // AddHook adds a hook to the logger hooks.
 func (log *SnowLogger) AddHook(hook logrus.Hook) {
 	log.inner.AddHook(hook)
-
 }
 
 // IsLevelEnabled checks if the log level of the logger is greater than the level param
@@ -269,5 +269,6 @@ func context2Fields(ctx context.Context) *logrus.Fields {
 			fields[string(gosnowflake.LogKeys[i])] = ctx.Value(gosnowflake.LogKeys[i])
 		}
 	}
+
 	return &fields
 }
